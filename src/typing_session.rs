@@ -1,4 +1,3 @@
-
 use std::time::Instant;
 
 use crate::my_logger::MyLogger;
@@ -64,47 +63,56 @@ impl TypingSession {
             self.start();
         }
 
+        if self.stop_time.is_some() {
+            return
+        }
+
         self.typed_text.push(ch);
         self.total_characters += 1;
-        
+
         if self.current_word_index < self.words.len() {
             let current_word = &mut self.words[self.current_word_index];
             current_word.typed.push(ch);
-            
+
             // Check if character is correct
             let expected_char = current_word.text.chars().nth(current_word.typed.len() - 1);
             if expected_char != Some(ch) {
                 current_word.has_error = true;
                 self.errors += 1;
             }
-            
+
             // Check if word is completed
             if current_word.typed.len() == current_word.text.len() {
                 current_word.is_completed = true;
                 current_word.is_correct = !current_word.has_error;
+
+                if self.current_word_index == self.words.len() - 1 {
+                    self.stop_time = Some(Instant::now());
+                    self.current_word_index += 1;
+                }
             }
         }
-        
+
         self.cursor_position += 1;
     }
 
     pub fn handle_space(&mut self) {
         if self.current_word_index < self.words.len() {
             let current_word = &mut self.words[self.current_word_index];
-            
+
             // Mark current word as completed if not already
             if !current_word.is_completed {
                 current_word.is_completed = true;
-                current_word.is_correct = current_word.typed == current_word.text && !current_word.has_error;
-                
+                current_word.is_correct =
+                    current_word.typed == current_word.text && !current_word.has_error;
+
                 // If word is incomplete, mark as error
                 if current_word.typed.len() < current_word.text.len() {
                     current_word.has_error = true;
                     self.errors += current_word.text.len() - current_word.typed.len();
                 }
-
             }
-            
+
             // Move to next word
             self.current_word_index += 1;
             self.typed_text.push(' ');
@@ -112,14 +120,13 @@ impl TypingSession {
         } else {
             self.stop_time = Some(Instant::now());
         }
-
     }
 
     pub fn handle_backspace(&mut self) {
         if !self.typed_text.is_empty() {
             let last_char = self.typed_text.pop();
             self.cursor_position = self.cursor_position.saturating_sub(1);
-            
+
             if last_char == Some(' ') {
                 // Moving back to previous word
                 if self.current_word_index > 0 {
@@ -147,7 +154,6 @@ impl TypingSession {
 
     pub fn get_wpm(&self) -> f64 {
         if let Some(start_time) = self.start_time {
-
             if let Some(stop_time) = self.stop_time {
                 let elapsed = (stop_time - start_time).as_secs_f64() / 60.0; // Convert to minutes
                 if elapsed > 0.0 {
@@ -201,18 +207,17 @@ pub enum WordDisplayState {
 
 // Sample sentences for typing practice
 pub const SAMPLE_SENTENCES: &[&str] = &[
-    "The quick brown fox jumps over the lazy dog",
-    "Pack my box with five dozen liquor jugs",
-    "How vexingly quick daft zebras jump",
-    "Waltz bad nymph for quick jigs vex",
-    "Programming is the art of telling another human what one wants the computer to do",
-    "Code is like humor when you have to explain it its bad",
-    "First solve the problem then write the code",
-    "The best error message is the one that never shows up",
+    //"The quick brown fox jumps over the lazy dog",
+    //"Pack my box with five dozen liquor jugs",
+    //"How vexingly quick daft zebras jump",
+    //"Waltz bad nymph for quick jigs vex",
+    //"Programming is the art of telling another human what one wants the computer to do",
+    //"Code is like humor when you have to explain it its bad",
+    //"First solve the problem then write the code",
+    //"The best error message is the one that never shows up",
+    "The Eiffel Tower is one of the most iconic landmarks in Paris, France. Built in 1889 for the World's Fair, it was initially intended to be a temporary structure. However, it became an instant icon of the city and has been preserved as a national monument.",
+    "Climate change is one of the most pressing issues of our time. Rising temperatures, melting ice caps, and extreme weather events are just a few of the devastating consequences of human activities that harm the environment. It's essential to reduce our carbon footprint, invest in renewable energy, and adopt sustainable practices to mitigate its effects.",
+    "The human brain is an incredibly complex organ, comprising billions of neurons that work together to enable us to think, learn, and remember. Despite significant advances in neuroscience, there is still much to be discovered about the workings of the brain, particularly when it comes to consciousness and the nature of intelligence.",
+    "Space exploration has come a long way since the Apollo missions of the 1960s and 1970s. Today, we have robots exploring Mars, the International Space Station is orbiting Earth, and private companies like SpaceX are pushing the boundaries of space travel. As we continue to explore the cosmos, we may one day find evidence of extraterrestrial life.",
+    "The benefits of meditation and mindfulness cannot be overstated. Regular practice has been shown to reduce stress, improve focus, and increase overall well-being. By incorporating mindfulness into our daily lives, we can cultivate a greater sense of calm, clarity, and connection to ourselves and others.",
 ];
-
-
-
-
-
-

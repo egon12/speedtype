@@ -3,11 +3,11 @@ use ratatui::{
     layout::{Constraint, Direction, Layout, Rect},
     style::{Color, Modifier, Style},
     text::{Line, Span, Text},
-    widgets::{Block, Borders, Paragraph, Widget},
+    widgets::{Block, Borders, Paragraph, Widget, Wrap},
 };
 
 use crate::app::App;
-use crate::sentences::WordDisplayState;
+use crate::typing_session::WordDisplayState;
 
 impl Widget for &App {
     fn render(self, area: Rect, buf: &mut Buffer) {
@@ -58,7 +58,21 @@ impl App {
 
         for (i, word) in self.typing_session.words.iter().enumerate() {
             let word_style = match word.get_display_state() {
-                WordDisplayState::Untyped => Style::default().fg(Color::Gray),
+                WordDisplayState::Untyped => {
+                    if i == self.typing_session.current_word_index {
+                        let w = word.text.clone();
+                        let mut chars = w.chars();
+                        let first_char = chars.next().expect("detected word with zero length");
+                        spans.push(Span::styled(String::from(first_char), Style::default().fg(Color::Gray).bg(Color::White)));
+
+                        let rest = chars.as_str();
+                        spans.push(Span::styled(String::from(rest), Style::default().fg(Color::Gray)));
+                        spans.push(Span::raw(" "));
+                        continue;
+                    }
+                    Style::default().fg(Color::Gray)
+
+                },
                 WordDisplayState::Typing => {
                     // Show character-by-character progress for current word
                     if i == self.typing_session.current_word_index {
@@ -111,14 +125,19 @@ impl App {
             // For non-current words, show them as complete units
             //if i != self.typing_session.current_word_index {
             spans.push(Span::styled(word.text.clone(), word_style));
-            spans.push(Span::raw(" "));
+
+            if word.is_completed && i == self.typing_session.current_word_index {
+                spans.push(Span::styled(" ", Style::default().bg(Color::White)));
+            } else {
+                spans.push(Span::raw(" "));
+            }
             //}
         }
 
         let text = Text::from(Line::from(spans));
-        let paragraph = Paragraph::new(text).centered();
+        let paragraph = Paragraph::new(text).centered()
+            .wrap(Wrap { trim: true });
             //.block(Block::default().borders(Borders::ALL).title("Type this text:"))
-            //.wrap(ratatui::widgets::Wrap { trim: true });
         
         paragraph.render(_typing_area, buf);
     }

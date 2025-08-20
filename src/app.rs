@@ -1,5 +1,5 @@
 use crate::event::{AppEvent, Event, EventHandler};
-use crate::sentences::{TypingSession, SAMPLE_SENTENCES};
+use crate::typing_session::{TypingSession, SAMPLE_SENTENCES};
 use crate::my_logger::MyLogger;
 use ratatui::{
     DefaultTerminal,
@@ -64,6 +64,7 @@ impl App {
     /// Handles the key events and updates the state of [`App`].
     pub fn handle_key_events(&mut self, key_event: KeyEvent) -> io::Result<()> {
         match key_event.code {
+            KeyCode::Esc => self.events.send(AppEvent::Quit),
             KeyCode::Char('c' | 'C') if key_event.modifiers == KeyModifiers::CONTROL => {
                 self.events.send(AppEvent::Quit)
             }
@@ -75,10 +76,7 @@ impl App {
                     self.typing_session.add_character(ch);
                 }
             }
-            KeyCode::Backspace => {
-                // Handle backspace
-                self.typing_session.handle_backspace();
-            }
+            KeyCode::Backspace => self.typing_session.handle_backspace(),
             KeyCode::Enter => {
                 // Restart with new sentence if current one is completed
                 if self.typing_session.is_completed() {

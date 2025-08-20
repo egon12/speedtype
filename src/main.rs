@@ -3,7 +3,7 @@ use std::io::{self, Error, ErrorKind};
 
 pub mod app;
 pub mod event;
-pub mod sentences;
+pub mod typing_session;
 pub mod ui;
 pub mod my_logger;
 
