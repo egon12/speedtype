@@ -1,0 +1,15 @@
+[package]
+name = "speedtype"
+version = "0.1.0"
+description = "Trial to duplicate monkeytype in cl"
+authors = ["egon.firman <egon.firman@bytedance.com>"]
+license = "MIT"
+edition = "2024"
+
+[dependencies]
+crossterm = { version = "0.28.1", features = ["event-stream"] }
+futures = "0.3.31"
+rand = "0.8.5"
+ratatui = "0.29.0"
+tokio = { version = "1.40.0", features = ["full"] }
+color-eyre = "0.6.3"
